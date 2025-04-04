@@ -62,9 +62,12 @@ export const AuthProvider = ({
         [navigate]);
 
     useEffect(() => {
+        
             const accessToken = localStorage.getItem('access_token');
+            console.log(accessToken)
             if (accessToken) {
                 if (isTokenValid(accessToken)) {
+                
                     setIsLoggedIn(true);
                 } else {
                     refreshAccessToken();

@@ -27,7 +27,7 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
         if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;  
+            originalRequest._retry = true;
             console.log('401 ошибка!');
             if (isRefreshingToken) {
                 // Если токен уже обновляется, добавляем запрос в очередь
@@ -44,7 +44,7 @@ axiosInstance.interceptors.response.use(
                 const refreshResponse = await AuthService.refresh();
                 console.log(refreshResponse)
                 if (refreshResponse && refreshResponse.success && refreshResponse.data.access_token) {
-                    
+
                     const newAccessToken = refreshResponse.data.access_token;
                     localStorage.setItem('access_token', newAccessToken);
                     originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -52,12 +52,12 @@ axiosInstance.interceptors.response.use(
                     // Запускаем все ожидающие запросы
                     pendingRequests.forEach((callback) => callback());
                     pendingRequests = [];
-                        
+
                     return axiosInstance(originalRequest);
                 } else {
-                    
+                    console.log(refreshResponse.error)
                     localStorage.removeItem('access_token');
-                    window.location.href = '/login';
+                    // window.location.href = '/login';
                     return Promise.reject(new Error('Token refresh failed'));
                 }
             } catch (refreshError) {
@@ -71,9 +71,15 @@ axiosInstance.interceptors.response.use(
         }
 
         if (error.response?.status === 403) {
-            console.error('Доступ запрещен (403)');
-            window.location.href = '/protected';
-            // alert('Доступ запрещен. У вас нет прав для просмотра этой страницы.');
+            const accessToken = localStorage.getItem('access_token');
+            if (accessToken) {
+                console.error('Доступ запрещен (403)');
+                alert('Доступ запрещен. У вас нет прав для просмотра этой страницы.');
+            }
+            else {
+                window.location.href = '/login';
+            }
+            
         }
 
         return Promise.reject(error);
